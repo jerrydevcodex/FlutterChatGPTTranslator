@@ -7,16 +7,21 @@ class BasicScreen extends StatefulWidget {
 }
 
 class _BasicState extends State<BasicScreen> {
-  ChatUser user = ChatUser(
+  ChatUser user1 = ChatUser(
     id: '1',
-    firstName: 'Charles',
-    lastName: 'Leclerc',
+    firstName: 'me',
+    lastName: 'me',
+  );
+  ChatUser user2 = ChatUser(
+    id: '2',
+    firstName: 'chatGPT',
+    lastName: 'openAI',
   );
 
   late List<ChatMessage> messages = <ChatMessage>[
     ChatMessage(
-      text: 'Hey!',
-      user: user,
+      text: '반갑습니다. 어서오세요. 무엇을 도와드릴까요?',
+      user: user2,
       createdAt: DateTime.now(),
     ),
   ];
@@ -28,7 +33,7 @@ class _BasicState extends State<BasicScreen> {
         title: const Text('Basic example'),
       ),
       body: DashChat(
-        currentUser: user,
+        currentUser: user1,
         onSend: (ChatMessage m) {
           setState(() {
             messages.insert(0, m);
