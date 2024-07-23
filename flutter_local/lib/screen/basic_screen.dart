@@ -13,10 +13,10 @@ class _BasicState extends State<BasicScreen> {
     lastName: 'me',
   );
   ChatUser user2 = ChatUser(
-    id: '2',
-    firstName: 'chatGPT',
-    lastName: 'openAI',
-  );
+      id: '2',
+      firstName: 'chatGPT',
+      lastName: 'openAI',
+      profileImage: "assets/img/gpt_icon.png");
 
   late List<ChatMessage> messages = <ChatMessage>[
     ChatMessage(
