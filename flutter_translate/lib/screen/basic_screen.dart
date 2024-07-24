@@ -125,7 +125,6 @@ class _BasicState extends State<BasicScreen> {
   Future<String> sendMessageToServer(String message) async {
     await dotenv.load(fileName: ".env");
     String? apiKey = dotenv.env['API_KEY'];
-    _currentLanguage = isTranslate ? "Korean" : "English";
 
     var headers = {
       'Content-Type': 'application/json',

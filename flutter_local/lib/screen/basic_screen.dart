@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class BasicScreen extends StatefulWidget {
   @override
@@ -97,10 +98,11 @@ class _BasicState extends State<BasicScreen> {
   }
 
   Future<String> sendMessageToServer(String message) async {
+    await dotenv.load(fileName: ".env");
+    String? apiKey = dotenv.env['API_KEY'];
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization':
-          'Bearer sk-proj-VQN6jt3ybHJZhpuSAi6xT3BlbkFJjYo0DmTM4rb5y8IaRSY6',
+      'Authorization': 'Bearer $apiKey',
     };
 
     var request = http.Request(
