@@ -38,9 +38,23 @@ class _BasicState extends State<BasicScreen> {
           setState(() {
             messages.insert(0, m);
           });
+          Futrue<String> data = sendMessageToServer(m.text);
+          data.then((value) {
+            setState(() {
+              messages.insert(
+                  0,
+                  ChatMessage(
+                    text: value,
+                    user: user2,
+                    createdAt: DateTime.now(),
+                  ));
+            });
+          });
         },
         messages: messages,
       ),
     );
   }
+
+  Future<String> sendMessageToServer(String message) async {}
 }
