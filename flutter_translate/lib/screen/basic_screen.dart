@@ -24,10 +24,13 @@ class _BasicState extends State<BasicScreen> {
   @override
   void initState() {
     super.initState();
-    _initSpeech();
-    flutterTts.setLanguage("en-US");
-    flutterTts.setSpeechRate(1.0);
-    flutterTts.setVolume(1.0);
+    dotenv.load(fileName: ".env").then((_) {
+      print("API Key: ${dotenv.env['API_KEY']}");
+      _initSpeech();
+      flutterTts.setLanguage("en-US");
+      flutterTts.setSpeechRate(1.0);
+      flutterTts.setVolume(1.0);
+    });
   }
 
   ChatUser user1 = ChatUser(
@@ -36,10 +39,11 @@ class _BasicState extends State<BasicScreen> {
     lastName: 'me',
   );
   ChatUser user2 = ChatUser(
-      id: '2',
-      firstName: 'chatGPT',
-      lastName: 'openAI',
-      profileImage: "assets/img/gpt_icon.png");
+    id: '2',
+    firstName: 'chatGPT',
+    lastName: 'openAI',
+    profileImage: "assets/img/gpt_icon.png",
+  );
 
   late List<ChatMessage> messages = <ChatMessage>[
     ChatMessage(
@@ -60,12 +64,13 @@ class _BasicState extends State<BasicScreen> {
         onSend: (ChatMessage m) {
           setState(() {
             messages.insert(
-                0,
-                ChatMessage(
-                  text: m.text,
-                  user: isTranslate ? user2 : user1,
-                  createdAt: DateTime.now(),
-                ));
+              0,
+              ChatMessage(
+                text: m.text,
+                user: isTranslate ? user2 : user1,
+                createdAt: DateTime.now(),
+              ),
+            );
           });
           Future<String> data = sendMessageToServer(m.text);
           data.then((value) {
@@ -85,8 +90,10 @@ class _BasicState extends State<BasicScreen> {
         inputOptions: InputOptions(
           leading: [
             IconButton(
-              icon: Icon(Icons.mic,
-                  color: isListening ? Colors.red : Colors.black),
+              icon: Icon(
+                Icons.mic,
+                color: isListening ? Colors.red : Colors.black,
+              ),
               onPressed: () {
                 setState(() {
                   isListening = !isListening;
@@ -101,8 +108,10 @@ class _BasicState extends State<BasicScreen> {
               },
             ),
             IconButton(
-              icon: Icon(Icons.g_translate,
-                  color: isTranslate ? Colors.red : Colors.black),
+              icon: Icon(
+                Icons.g_translate,
+                color: isTranslate ? Colors.red : Colors.black,
+              ),
               onPressed: () {
                 setState(() {
                   isTranslate = !isTranslate;
@@ -115,7 +124,7 @@ class _BasicState extends State<BasicScreen> {
                   }
                 });
               },
-            )
+            ),
           ],
         ),
       ),
@@ -126,13 +135,21 @@ class _BasicState extends State<BasicScreen> {
     await dotenv.load(fileName: ".env");
     String? apiKey = dotenv.env['API_KEY'];
 
+    if (apiKey == null) {
+      print("ERROR: API key is missing");
+      return "ERROR: API key is missing";
+    }
+
     var headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $apiKey',
     };
 
     var request = http.Request(
-        'POST', Uri.parse('https://api.openai.com/v1/chat/completions'));
+      'POST',
+      Uri.parse('https://api.openai.com/v1/chat/completions'),
+    );
+    _currentLanguage = isTranslate ? "Korean" : "English";
     request.body = json.encode({
       "model": "gpt-3.5-turbo",
       "messages": [
@@ -145,7 +162,7 @@ class _BasicState extends State<BasicScreen> {
           "role": "user",
           "content": message,
         }
-      ]
+      ],
     });
     request.headers.addAll(headers);
 
@@ -160,38 +177,33 @@ class _BasicState extends State<BasicScreen> {
       print(responseString);
       return result;
     } else {
-      print(response.reasonPhrase);
-      return "ERROR";
+      String errorResponse = await response.stream.bytesToString();
+      print("Error response: $errorResponse");
+      return "ERROR: ${response.reasonPhrase}";
     }
   }
 
-  /// This has to happen only once per app
   void _initSpeech() async {
     print("음성인식 기능을 시작합니다");
     _speechEnabled = await _speechToText.initialize();
     setState(() {});
   }
 
-  /// Each time to start a speech recognition session
   void _startListening() async {
     print("음성인식을 시작합니다.");
     await _speechToText.listen(
-        onResult: _onSpeechResult, localeId: isTranslate ? "en_US" : "ko-KR");
+      onResult: _onSpeechResult,
+      localeId: isTranslate ? "en_US" : "ko_KR",
+    );
     setState(() {});
   }
 
-  /// Manually stop the active speech recognition session
-  /// Note that there are also timeouts that each platform enforces
-  /// and the SpeechToText plugin supports setting timeouts on the
-  /// listen method.
   void _stopListening() async {
     print("음성인식을 종료합니다.");
     await _speechToText.stop();
     setState(() {});
   }
 
-  /// This is the callback that the SpeechToText plugin calls when
-  /// the platform returns recognized words.
   void _onSpeechResult(SpeechRecognitionResult result) {
     if (result.finalResult) {
       setState(() {
@@ -210,12 +222,13 @@ class _BasicState extends State<BasicScreen> {
       data.then((value) {
         setState(() {
           messages.insert(
-              0,
-              ChatMessage(
-                text: value,
-                user: isTranslate ? user2 : user1,
-                createdAt: DateTime.now(),
-              ));
+            0,
+            ChatMessage(
+              text: value,
+              user: isTranslate ? user2 : user1,
+              createdAt: DateTime.now(),
+            ),
+          );
         });
         flutterTts.speak(value);
       });
